@@ -1,3 +1,5 @@
+--
+
 SELECT members.first_name, members.last_name, borrowed_books.book_id  
 
 FROM borrowed_books 
@@ -16,21 +18,25 @@ INNER JOIN members ON bb.member_id = members.id;
 
 --
 
-SELECT authors.name, books.title 
+SELECT books.title AS BookTitle,
 
-FROM authors 
+borrowed_books.borrow_date AS BorrowDate
 
-LEFT JOIN books ON authors.id = books.author_id; 
+FROM books
+
+LEFT JOIN borrowed_books ON books.id = borrowed_books.book_id;
 
 --
 
-SELECT authors.name, books.title 
+SELECT members.first_name AS MemberFirstName, members.last_name AS MemberLastName,
 
-FROM authors 
+borrowed_books.borrow_date as BorrowDate
 
-RIGHT JOIN books 
+FROM members
 
-ON authors.id = books.author_id; 
+RIGHT JOIN borrowed_books
+
+ON members.id = borrowed_books.member_id;
 
 --
 
@@ -44,71 +50,101 @@ JOIN books ON borrowed_books.book_id = books.id;
 
 --
 
-SELECT authors.name, books.title 
+SELECT members.first_name as MemberFirstName, 
 
-FROM authors 
+members.last_name AS MemberLastName, 
 
-FULL JOIN books  
+books.title AS BorrowedBookTitle, 
 
-ON authors.id = books.author_id; 
+borrowed_books.borrow_date AS BorrowDate
 
---
+FROM books
 
-SELECT a.name, b.title 
+RIGHT JOIN borrowed_books ON books.id = borrowed_books.book_id
 
-FROM authors a 
+RIGHT JOIN members ON borrowed_books.member_id = members.id;
 
-LEFT JOIN books b ON a.id = b.author_id 
+-- this query will give error in MySQL because FULL JOIN keyword is not suported natively
 
-UNION 
+SELECT members.first_name, members.last_name, books.title, borrowed_books.borrow_date
 
-SELECT a.name, b.title 
+FROM members
 
-FROM authors a 
+FULL JOIN borrowed_books ON members.id = borrowed_books.member_id
 
-RIGHT JOIN books b ON a.id = b.author_id 
-
-WHERE a.id IS NULL; 
+JOIN books ON borrowed_books.book_id = books.id;
 
 --
 
-SELECT a.name, b.title 
+SELECT m.first_name AS MemberFirstName, 
 
-FROM authors AS a  
+m.last_name AS MemberLastName, 
 
-CROSS JOIN books AS b; 
+b.title AS BorrowedBookTitle
+
+FROM members m
+
+LEFT JOIN borrowed_books bb ON m.id = bb.member_id
+
+LEFT JOIN books b ON bb.book_id = b.id
+
+UNION
+
+SELECT m.first_name AS MemberFirstName, 
+
+m.last_name AS MemberLastName, 
+
+b.title AS BorrowedBookTitle
+
+FROM members m
+
+RIGHT JOIN borrowed_books bb ON m.id = bb.member_id
+
+RIGHT JOIN books b ON bb.book_id = b.id;
+
 
 --
 
-SELECT e.employee_name, m.employee_name AS manager_name 
+SELECT members.first_name AS MemberFirstName, 
 
-FROM employees e 
+members.last_name AS MemberLastName, 
 
-JOIN employees m ON e.manager_id = m.employee_id; 
+books.title as BookTitle
+
+FROM members 
+
+CROSS JOIN books;
 
 --
+
+SELECT A.first_name AS Member1FirstName, A.last_name AS Member1LastName, 
+
+B.first_name AS Member2FirstName, B.last_name AS Member2LastName
+
+FROM members A, members B
+
+WHERE A.id <> B.id AND
+
+A.join_date = B.join_date;
 
 -- Implicit JOIN Syntax 
 
-SELECT members.name, books.title 
+SELECT members.first_name, books.title
 
-FROM members, borrowed_books, books 
+FROM members, borrowed_books, books
 
-WHERE members.id = borrowed_books.member_id AND books.id = borrowed_books.book_id; 
-
---
+WHERE members.id = borrowed_books.member_id AND 
+books.id = borrowed_books.book_id;
 
 -- Explicit JOIN Syntax 
 
-SELECT members.name, books.title 
+SELECT members.first_name, books.title
 
-FROM members  
+FROM members 
 
-JOIN borrowed_books ON members.id = borrowed_books.member_id  
+JOIN borrowed_books ON members.id = borrowed_books.member_id 
 
-JOIN books ON books.id = borrowed_books.book_id; 
-
---
+JOIN books ON books.id = borrowed_books.book_id;
 
 -- Incorrect JOIN condition, resulting in a Cartesian product 
 
@@ -117,8 +153,6 @@ SELECT books.title, authors.name
 FROM books 
 
 JOIN authors ON books.id = authors.id; 
-
-And this one where we do it right: 
 
 -- Correct JOIN condition 
 
