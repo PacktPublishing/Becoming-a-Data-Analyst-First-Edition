@@ -1,4 +1,20 @@
-SELECT COUNT(*) AS "Currently Borrowed"  
+SELECT first_name, last_name
+
+FROM members
+
+WHERE join_date = CURDATE();
+
+--
+
+SELECT book_id, member_id, borrow_date, DATEDIFF(CURDATE(), borrow_date) AS 'Days Borrowed'
+
+FROM borrowed_books
+
+WHERE return_date IS NULL;
+
+--
+
+SELECT COUNT(*) AS 'Currently Borrowed'
 
 FROM borrowed_books 
 
@@ -6,43 +22,33 @@ WHERE return_date IS NULL;
 
 --
 
-SELECT COUNT(*) AS "TOTAL NUMBRER OF MEMBERS" 
+SELECT COUNT(*) AS 'Number of Members'
 
 FROM members; 
 
 --
 
-ALTER TABLE borrowed_books ADD COLUMN fine_amount INT; 
+ALTER TABLE borrowed_books ADD COLUMN fine_amount INT;
 
 --
 
-PDATE borrowed_books  
+UPDATE borrowed_books 
 
-SET fine_amount = 1000  
+SET fine_amount = DATEDIFF(CURDATE(), due_date) * 5, return_date= CURDATE()
 
-WHERE id=2; 
-
-UPDATE borrowed_books  
-
-SET return_date= '2022-10-11'  
-
-WHERE id=2; 
+WHERE return_date IS NULL AND CURDATE() > due_date;
 
 --
 
-SELECT SUM(fine_amount) 
+SELECT * FROM borrowed_books;
+
+--
+
+SELECT SUM(fine_amount) AS 'Sum of Fines'
 
 FROM borrowed_books 
 
-WHERE return_date IS NOT NULL; 
-
---
-
-SELECT AVG(column_name) 
-
-FROM table_name 
-
-WHERE condition; 
+WHERE return_date > due_date;
 
 --
 
@@ -54,11 +60,11 @@ WHERE birth_year IS NOT NULL;
 
 --
 
-SELECT MIN(join_date) FROM members; 
+SELECT MIN(join_date) AS 'Min Join Date', 
 
---
+MAX(join_date) AS 'Max Join Date' 
 
-SELECT MAX(join_date) FROM members; 
+FROM members;
 
 --
 
@@ -78,57 +84,39 @@ GROUP BY member_id;
 
 --
 
-SELECT member_id, COUNT(book_id) as “Number of Borrowed Books” 
+SELECT b.member_id, m.first_name, m.last_name,
 
-FROM borrowed_books 
+SUM(b.fine_amount) AS 'Total Fine For Member'
 
-GROUP BY member_id 
+FROM borrowed_books b
 
-HAVING COUNT(book_id) >= 1; 
+JOIN members m ON b.member_id = m.id
 
---
-
-SELECT member_id, SUM(fine_amount) as TotalFine 
-
-FROM borrowed_books 
-
-GROUP BY member_id 
-
-HAVING SUM(fine_amount) > 500; 
+GROUP BY b.member_id, m.first_name, m.last_name;
 
 --
 
-SELECT member_id, AVG(fine_amount) as AverageFine 
+SELECT member_id, SUM(fine_amount) AS 'Total Fine For Member'
 
-FROM borrowed_books 
+FROM borrowed_books
 
-GROUP BY member_id; 
+WHERE borrow_date > '2022-01-01'
 
---
+GROUP BY member_id
 
-SELECT member_id, COUNT(book_id) as BooksBorrowed 
-
-FROM borrowed_books 
-
-GROUP BY member_id; 
+HAVING SUM(fine_amount) > 1000;
 
 --
 
-SELECT member_id, SUM(fine_amount) as TotalFine 
+SELECT member_id, AVG(fine_amount) as 'Average Fine'
 
-FROM borrowed_books 
+FROM borrowed_books
 
-WHERE IsActive = 1 
-
-GROUP BY member_id; 
+GROUP BY member_id;
 
 --
 
-SELECT  
-
-  member_id,  
-
-  COUNT(book_id) as BooksBorrowed 
+SELECT member_id, COUNT(book_id) as 'Borrowed Books' 
 
 FROM borrowed_books 
 
@@ -136,3 +124,22 @@ GROUP BY member_id;
 
 --
 
+SELECT member_id, SUM(fine_amount) as 'Total Fine' 
+
+FROM borrowed_books 
+
+WHERE is_active = 1
+
+GROUP BY member_id; 
+
+--
+
+SELECT member_id, 
+
+COUNT(book_id) as 'Books Borrowed'
+
+FROM borrowed_books
+
+GROUP BY member_id;
+
+--
